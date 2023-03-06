@@ -69,9 +69,50 @@ def _calc_times():
     return flask.jsonify(result=result)
 
 
-#@app.route("/_brevet_insert")
+@app.route("/_brevet_insert", methods = ["POST"])
+def insert():
+    try:
+        # Read the entire request body as a JSON
+        # This will fail if the request body is NOT a JSON.
+        input_json = request.json
+        # if successful, input_json is automatically parsed into a python dictionary!
+        
+        # Because input_json is a dictionary, we can do this:
+        start_time = input_json["start_time"]
+        brev_dist = input_json["brev_dist"]
+        checkpoints = input_json["checkpoints"]
+    
+        brevet_id = brevet_insert(start_time, brev_dist, checkpoints)
 
-#@app.route("/_brevet_fetch")
+        return flask.jsonify(result={},
+                        message="Inserted!", 
+                        status=1, # This is defined by you. You just read this value in your javascript.
+                        mongo_id=brevet_id)
+    except:
+        # The reason for the try and except is to ensure Flask responds with a JSON.
+        # If Flask catches your error, it means you didn't catch it yourself,
+        # And Flask, by default, returns the error in an HTML.
+        # We want /insert to respond with a JSON no matter what!
+        return flask.jsonify(result={},
+                        message="Oh no! Server error!", 
+                        status=0, 
+                        mongo_id='None')
+
+
+
+@app.route("/_brevet_fetch")
+def fetch():
+    try:
+        start_time, brev_dist, checkpoints = brevet_find()
+        return flask.jsonify(
+                result={"brev_dist": brev_dist, "start_time": start_time, "checkpoints": checkpoints}, 
+                status=1,
+                message="Successfully fetched a brevet!")
+    except:
+        return flask.jsonify(
+                result={}, 
+                status=0,
+                message="Something went wrong, couldn't fetch any lists!")
 
 #############
 
